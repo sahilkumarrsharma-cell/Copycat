@@ -27,6 +27,13 @@ Open http://localhost:5173. To serve the built frontend through FastAPI, run `np
 
 ## Hosting
 
-A public GitHub repository shares the source code; it does not run the backend. To host the app, deploy the included `Dockerfile` on a container service and set `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` as server environment variables. Never commit `.env` files or put the service-role key in frontend settings.
+A public GitHub repository shares the source code; it does not run the app. CopyCat can run on Cloudflare Workers Containers using the included `Dockerfile` and `wrangler.jsonc`.
+
+1. Connect this repository to Cloudflare Workers Builds with `main` as the production branch.
+2. Set the build command to `npm ci` and deploy command to `npm run deploy`.
+3. Add `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` in the Worker's server-side **Settings > Variables and Secrets**. Do not put secret values in GitHub or frontend settings.
+4. Ensure the private `copycat-glyphs` bucket and database schema are configured in Supabase.
+
+Cloudflare Containers require the Workers Paid plan (minimum USD $5/month), with possible extra charges for container usage above included allowances. The Wrangler worker routes requests to a single basic-size container, which sleeps after inactivity. The container needs outbound internet access to reach Supabase.
 
 Uploaded handwriting and paper images are stored in private Supabase storage. Sessions expire after 24 hours; expired files are cleaned up when a new handwriting sheet is uploaded.
