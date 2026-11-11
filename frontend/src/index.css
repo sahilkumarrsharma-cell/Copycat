@@ -1,0 +1,49 @@
+@import "tailwindcss";
+
+@theme {
+  --font-hand: "Caveat", cursive;
+  --font-sans: "Schibsted Grotesk", system-ui, sans-serif;
+  --color-ink: #1c2b4a;
+  --color-margin: #d45b50;
+  --color-rule: #dbe4f2;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-width: 320px;
+  margin: 0;
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  background: #f5f7fb;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+button:not(:disabled) {
+  cursor: pointer;
+}
+
+button {
+  transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease, transform 140ms ease;
+}
+
+button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+:focus-visible {
+  outline: 3px solid #e08b82;
+  outline-offset: 3px;
+}
+
+::selection {
+  color: #fff;
+  background: #425f9f;
+}
