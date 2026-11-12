@@ -23,19 +23,18 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:5173. Copy `frontend/.env.example` to `frontend/.env` if needed, then set `VITE_API_BASE_URL` to the Render URL, for example `https://copycat-api.onrender.com`, and set `CORS_ORIGINS` in the backend to include your frontend origin.
+Open http://localhost:5173. When the frontend and backend are deployed together, leave `VITE_API_BASE_URL` empty. For a separate frontend host, set it to the backend URL and add the frontend origin to the backend's `CORS_ORIGINS`.
 
 To serve the built frontend through FastAPI, run `npm run build` in `frontend/` and start the backend without `--reload`.
 
 ## Hosting
 
-A public GitHub repository shares the source code; it does not run the app. The simplest deployment is to keep the frontend on Cloudflare Pages and run the FastAPI backend on Render.
+A public GitHub repository shares the source code; it does not run the app. CopyCat is deployed as one Render web service using the included `Dockerfile`, which builds the frontend and serves it with the FastAPI backend.
 
-1. Connect the repository to Cloudflare Pages and build the frontend from `frontend/` using `npm install` and `npm run build`.
-2. Set the frontend environment variable `VITE_API_BASE_URL` to the Render backend URL (or leave it empty when the frontend and API share the same domain).
-3. Deploy the Python backend on Render using the included `Dockerfile` or a standard Python service, and set `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, and `CORS_ORIGINS` in the service environment.
-4. Ensure the private `copycat-glyphs` bucket and database schema are configured in Supabase.
+1. Connect the repository to Render and deploy it as a Docker web service.
+2. Set `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` in the Render service's environment settings. Keep secrets out of GitHub.
+3. Ensure the private `copycat-glyphs` bucket and database schema are configured in Supabase.
 
-This keeps the app public without exposing secrets in frontend code or GitHub. The Cloudflare worker configuration in this repo is optional and is mainly useful for a single-container prototype; the Pages + Render flow is the safer deployment path for production testing.
+The frontend and API share one origin, so no separate frontend API URL or CORS configuration is needed for this deployment.
 
 Uploaded handwriting and paper images are stored in private Supabase storage. Sessions expire after 24 hours; expired files are cleaned up when a new handwriting sheet is uploaded.
