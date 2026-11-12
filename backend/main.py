@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Literal
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import FastAPI, File, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, Response
 from postgrest.exceptions import APIError
@@ -38,8 +38,26 @@ STORAGE_BUCKET = os.getenv("SUPABASE_STORAGE_BUCKET", "copycat-glyphs")
 logger = logging.getLogger(__name__)
 _client: Client | None = None
 
+def _cors_origins() -> list[str]:
+    configured = os.getenv("CORS_ORIGINS", "")
+    origins = [item.strip() for item in configured.split(",") if item.strip()]
+    defaults = [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:4173",
+        "http://127.0.0.1:4173",
+    ]
+    return list(dict.fromkeys(origins + defaults))
+
+
 app = FastAPI(title="CopyCat")
-app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:5173"], allow_methods=["*"], allow_headers=["*"])
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=_cors_origins(),
+    allow_methods=["*"],
+    allow_headers=["*"],
+    allow_credentials=True,
+)
 
 
 class GenerateRequest(BaseModel):
@@ -145,6 +163,13 @@ def _download_paper(client: Client, session: str):
     return image, layout
 
 
+def _api_url(request: Request, path: str) -> str:
+    configured = os.getenv("PUBLIC_API_BASE_URL", "").rstrip("/")
+    if configured:
+        return f"{configured}{path}"
+    return f"{request.base_url}{path.lstrip('/')}"
+
+
 def _render(req: GenerateRequest):
     client = _supabase()
     row = _session_row(client, req.session)
@@ -173,7 +198,7 @@ def template():
 
 
 @app.post("/api/upload-handwriting")
-def upload_handwriting(file: UploadFile = File(...)):
+def upload_handwriting(request: Request, file: UploadFile = File(...)):
     data = file.file.read(MAX_UPLOAD + 1)
     if len(data) > MAX_UPLOAD:
         raise HTTPException(413, "Photo is larger than 15 MB.")
@@ -210,7 +235,7 @@ def upload_handwriting(file: UploadFile = File(...)):
             raise HTTPException(503, "Could not save your handwriting to Supabase. Try again shortly.")
 
     for glyph in result["found"]:
-        glyph["url"] = f"/api/files/{sid}/{glyph['file']}"
+        glyph["url"] = _api_url(request, f"/api/files/{sid}/{glyph['file']}")
     return {"session": sid, **result}
 
 

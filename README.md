@@ -23,17 +23,19 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:5173. To serve the built frontend through FastAPI, run `npm run build` in `frontend/` and start the backend without `--reload`.
+Open http://localhost:5173. Copy `frontend/.env.example` to `frontend/.env` if needed, then set `VITE_API_BASE_URL` to the Render URL, for example `https://copycat-api.onrender.com`, and set `CORS_ORIGINS` in the backend to include your frontend origin.
+
+To serve the built frontend through FastAPI, run `npm run build` in `frontend/` and start the backend without `--reload`.
 
 ## Hosting
 
-A public GitHub repository shares the source code; it does not run the app. CopyCat can run on Cloudflare Workers Containers using the included `Dockerfile` and `wrangler.jsonc`.
+A public GitHub repository shares the source code; it does not run the app. The simplest deployment is to keep the frontend on Cloudflare Pages and run the FastAPI backend on Render.
 
-1. Connect this repository to Cloudflare Workers Builds with `main` as the production branch.
-2. Set the build command to `npm ci` and deploy command to `npm run deploy`.
-3. Add `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` in the Worker's server-side **Settings > Variables and Secrets**. Do not put secret values in GitHub or frontend settings.
+1. Connect the repository to Cloudflare Pages and build the frontend from `frontend/` using `npm install` and `npm run build`.
+2. Set the frontend environment variable `VITE_API_BASE_URL` to the Render backend URL (or leave it empty when the frontend and API share the same domain).
+3. Deploy the Python backend on Render using the included `Dockerfile` or a standard Python service, and set `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, and `CORS_ORIGINS` in the service environment.
 4. Ensure the private `copycat-glyphs` bucket and database schema are configured in Supabase.
 
-Cloudflare Containers require the Workers Paid plan (minimum USD $5/month), with possible extra charges for container usage above included allowances. The Wrangler worker routes requests to a single basic-size container, which sleeps after inactivity. The container needs outbound internet access to reach Supabase.
+This keeps the app public without exposing secrets in frontend code or GitHub. The Cloudflare worker configuration in this repo is optional and is mainly useful for a single-container prototype; the Pages + Render flow is the safer deployment path for production testing.
 
 Uploaded handwriting and paper images are stored in private Supabase storage. Sessions expire after 24 hours; expired files are cleaned up when a new handwriting sheet is uploaded.

@@ -12,11 +12,16 @@ const PAPERS = [
   { id: "blank", label: "Blank A4" },
 ];
 const JSON_HEADERS = { "Content-Type": "application/json" };
+const API_BASE = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/$/, "");
 const btn =
   "inline-flex items-center justify-center rounded-xl bg-ink px-5 py-3 font-semibold text-white hover:bg-[#2b416d] disabled:cursor-not-allowed disabled:opacity-40";
 
+function apiUrl(path) {
+  return `${API_BASE}${path}`;
+}
+
 async function api(path, options) {
-  const res = await fetch(path, options);
+  const res = await fetch(apiUrl(path), options);
   if (!res.ok) {
     let msg = "Something went wrong. Check your inputs and try again.";
     try {
@@ -213,7 +218,7 @@ export default function App() {
     let cancel = false;
     (async () => {
       try {
-        const res = await fetch(`/api/paper/${session}`);
+        const res = await fetch(apiUrl(`/api/paper/${session}`));
         if (cancel) return;
         if (res.status === 404) {
           setPaper("ruled");
@@ -305,7 +310,7 @@ export default function App() {
         <div className="min-w-0">
           <Step title="1. Fill in the calibration sheet">
             <p>Print it at 100% on A4 and write one character in each box with a dark pen. Photograph the full page flat, with all 4 black corner squares visible.</p>
-            <a href="/api/template" download="copycat_sheet.png" className={btn}>Download calibration sheet</a>
+            <a href={apiUrl("/api/template")} download="copycat_sheet.png" className={btn}>Download calibration sheet</a>
           </Step>
 
           <Step title="2. Upload your photo">
