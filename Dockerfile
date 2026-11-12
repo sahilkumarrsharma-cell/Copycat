@@ -1,5 +1,4 @@
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=your-server-side-keyFROM node:22-bookworm-slim AS frontend-build
+FROM node:22-bookworm-slim AS frontend-build
 
 WORKDIR /app/frontend
 COPY frontend/package.json frontend/package-lock.json ./
